@@ -16,7 +16,7 @@ class ViewController: UITableViewController {
         
         navigationItem.leftBarButtonItem = UIBarButtonItem(title: "filter", style: .plain, target: self, action: #selector(filteredCases))
 
-        navigationItem.rightBarButtonItem = UIBarButtonItem(barButtonSystemItem: .bookmarks, target: self, action: #selector(showCredits))
+        navigationItem.rightBarButtonItem = UIBarButtonItem(title:"info", style: .plain, target: self, action: #selector(showCredits))
         
         if navigationController?.tabBarItem.tag == 0 {
             // urlString = "https://api.whitehouse.gov/v1/petitions.json?limit=100"
@@ -58,7 +58,7 @@ class ViewController: UITableViewController {
 //
 //        cell.textLabel?.text = petition.title
 //        cell.detailTextLabel?.text = petition.body
-        //second challange: 
+        //second challange:
         let filterdPetition = filteredPetitions[indexPath.row]
         cell.textLabel?.text = filterdPetition.title
         cell.detailTextLabel?.text = filterdPetition.body
@@ -89,10 +89,11 @@ class ViewController: UITableViewController {
     }
     
     @objc func filteredCases() {
+        //　テキストフィールド付きアラート表示
             let ac = UIAlertController(title: "placeholder", message: "placeholder", preferredStyle: .alert)
             ac.addTextField()
             
-            // from Project 5
+            // Submitアラートボタン表示
             let submitAction = UIAlertAction(title: "Submit", style: .default) {
                 [weak self, weak ac] _ in
                 guard let answer = ac?.textFields?[0].text else { return }
@@ -101,7 +102,7 @@ class ViewController: UITableViewController {
             ac.addAction(submitAction)
             present(ac, animated: true, completion: nil)
         }
-        //second challange:
+        //　Submitが押されたら行う指定した文字を含むタイトルを見つける
         func submit(_ answer: String) {
             filteredPetitions.removeAll()
             for petition in petitions {
