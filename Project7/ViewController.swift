@@ -9,10 +9,15 @@ import UIKit
 
 class ViewController: UITableViewController {
     var petitions = [Petition]()
-
+    //second challange:
+    var filteredPetitions = [Petition]()
     override func viewDidLoad() {
         let urlString: String
+        
+        navigationItem.leftBarButtonItem = UIBarButtonItem(title: "filter", style: .plain, target: self, action: #selector(filteredCases))
 
+        navigationItem.rightBarButtonItem = UIBarButtonItem(barButtonSystemItem: .bookmarks, target: self, action: #selector(showCredits))
+        
         if navigationController?.tabBarItem.tag == 0 {
             // urlString = "https://api.whitehouse.gov/v1/petitions.json?limit=100"
             urlString = "https://www.hackingwithswift.com/samples/petitions-1.json"
@@ -24,6 +29,8 @@ class ViewController: UITableViewController {
         if let url = URL(string: urlString) {
             if let data = try? Data(contentsOf: url) {
                 parse(json: data)
+                //second challange: second challange:
+                filteredPetitions = petitions
                 return
             }
         }
@@ -31,7 +38,7 @@ class ViewController: UITableViewController {
     }
     func parse(json: Data) {
         let decoder = JSONDecoder()
-
+        
         if let jsonPetitions = try? decoder.decode(Petitions.self, from: json) {
             petitions = jsonPetitions.results
             tableView.reloadData()
@@ -39,15 +46,23 @@ class ViewController: UITableViewController {
     }
     
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return petitions.count
+//        return petitions.count
+        return filteredPetitions.count
     }
     
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: "Cell", for: indexPath)
         
-        let petition = petitions[indexPath.row]
-        cell.textLabel?.text = petition.title
-        cell.detailTextLabel?.text = petition.body
+//        let petition = petitions[indexPath.row]
+//
+//
+//        cell.textLabel?.text = petition.title
+//        cell.detailTextLabel?.text = petition.body
+        //second challange: 
+        let filterdPetition = filteredPetitions[indexPath.row]
+        cell.textLabel?.text = filterdPetition.title
+        cell.detailTextLabel?.text = filterdPetition.body
+        
         
         return cell
     }
@@ -56,6 +71,7 @@ class ViewController: UITableViewController {
     
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         let vc = DetailViewController()
+        // ここでJsonがDetailViewに渡される
         vc.detailItem = petitions[indexPath.row]
         navigationController?.pushViewController(vc, animated: true)
     }
@@ -65,8 +81,36 @@ class ViewController: UITableViewController {
         ac.addAction(UIAlertAction(title: "OK", style: .default))
         present(ac, animated: true)
     }
-
-
-
+    
+    @objc func showCredits() {
+        let ac = UIAlertController(title: "This data came from the White House We The People API", message: nil, preferredStyle: .alert)
+        ac.addAction(UIAlertAction(title: "Done", style: .default))
+        present(ac, animated: true)
+    }
+    
+    @objc func filteredCases() {
+            let ac = UIAlertController(title: "placeholder", message: "placeholder", preferredStyle: .alert)
+            ac.addTextField()
+            
+            // from Project 5
+            let submitAction = UIAlertAction(title: "Submit", style: .default) {
+                [weak self, weak ac] _ in
+                guard let answer = ac?.textFields?[0].text else { return }
+                self?.submit(answer)
+            }
+            ac.addAction(submitAction)
+            present(ac, animated: true, completion: nil)
+        }
+        //second challange:
+        func submit(_ answer: String) {
+            filteredPetitions.removeAll()
+            for petition in petitions {
+                if petition.title.contains(answer) {
+                    filteredPetitions.append(petition)
+                }
+            }
+            tableView.reloadData()
+        }
+    
 }
 
