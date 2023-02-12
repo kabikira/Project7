@@ -26,22 +26,28 @@ class ViewController: UITableViewController {
             urlString = "https://www.hackingwithswift.com/samples/petitions-2.json"
         }
         // URLが有効であることを確認するためにif letを使用しています。
-        if let url = URL(string: urlString) {
-            if let data = try? Data(contentsOf: url) {
-                parse(json: data)
-                //second challange: second challange:
-                filteredPetitions = petitions
-                return
+        DispatchQueue.global(qos: .userInitiated).async { [weak self]  in
+            if let url = URL(string: urlString) {
+                if let data = try? Data(contentsOf: url) {
+                    self?.parse(json: data)
+                    
+                    return
+                }
             }
+            self?.showError()
         }
-        showError()
+        
     }
     func parse(json: Data) {
         let decoder = JSONDecoder()
         
         if let jsonPetitions = try? decoder.decode(Petitions.self, from: json) {
             petitions = jsonPetitions.results
-            tableView.reloadData()
+            //second challange: second challange:
+            DispatchQueue.main.async {
+                self.filteredPetitions = self.petitions
+                self.tableView.reloadData()
+            }
         }
     }
     
@@ -77,9 +83,11 @@ class ViewController: UITableViewController {
     }
     
     func showError() {
-        let ac = UIAlertController(title: "Loading error", message: "There was a problem loading the feed; please check your connection and try again.", preferredStyle: .alert)
-        ac.addAction(UIAlertAction(title: "OK", style: .default))
-        present(ac, animated: true)
+        DispatchQueue.main.async { [weak self]  in
+            let ac = UIAlertController(title: "Loading error", message: "There was a problem loading the feed; please check your connection and try again.", preferredStyle: .alert)
+            ac.addAction(UIAlertAction(title: "OK", style: .default))
+            self?.present(ac, animated: true)
+        }
     }
     
     @objc func showCredits() {
@@ -104,14 +112,20 @@ class ViewController: UITableViewController {
         }
         //　Submitが押されたら行う指定した文字を含むタイトルを見つける
         func submit(_ answer: String) {
-            filteredPetitions.removeAll()
-            for petition in petitions {
-                if petition.title.contains(answer) {
-                    filteredPetitions.append(petition)
+                filteredPetitions.removeAll()
+                for petition in petitions {
+                    DispatchQueue.global(qos: .userInitiated).async { [weak self]  in
+                        if petition.title.contains(answer) {
+                            self?.filteredPetitions.append(petition)
+                        }
+                    }
+                    
                 }
-            }
-            tableView.reloadData()
+                DispatchQueue.main.async { [weak self]  in
+                    self?.tableView.reloadData()
+                }
+                
+            
         }
-    
 }
 
